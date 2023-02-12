@@ -43,7 +43,7 @@ function App() {
     const getScore = async () => {
       try {
         await fetch(
-          "https://testnet.mirrornode.hedera.com/api/v1/accounts/0.0.40790/tokens?token.id=0.0.2238258"
+          `https://testnet.mirrornode.hedera.com/api/v1/accounts/${process.env.REACT_APP_CUSTOMER_ACCOUNT_ID}/tokens?token.id=${process.env.REACT_APP_FT_ID}`
         )
           .then((response) => response.json())
           .then((data) => {
