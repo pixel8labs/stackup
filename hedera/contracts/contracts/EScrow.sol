@@ -10,68 +10,38 @@ import "./HederaResponseCodes.sol";
 import "./ExpiryHelper.sol";
 
 contract EScrow is ExpiryHelper {
-    event CreatedToken(address tokenAddress);
-
     function createNFT(
         string memory name,
         string memory symbol
-    ) public payable {
+    ) external payable returns (address) {
         IHederaTokenService.TokenKey[]
-            memory keys = new IHederaTokenService.TokenKey[](5);
+            memory keys = new IHederaTokenService.TokenKey[](1);
+
+        // Set this contract as supply
         keys[0] = getSingleKey(
-            KeyType.ADMIN,
-            KeyType.PAUSE,
-            KeyValueType.INHERIT_ACCOUNT_KEY,
-            bytes("")
-        );
-        keys[1] = getSingleKey(
-            KeyType.KYC,
-            KeyValueType.INHERIT_ACCOUNT_KEY,
-            bytes("")
-        );
-        keys[2] = getSingleKey(
-            KeyType.FREEZE,
-            KeyValueType.INHERIT_ACCOUNT_KEY,
-            bytes("")
-        );
-        keys[3] = getSingleKey(
             KeyType.SUPPLY,
-            KeyValueType.INHERIT_ACCOUNT_KEY,
-            bytes("")
-        );
-        keys[4] = getSingleKey(
-            KeyType.WIPE,
-            KeyValueType.INHERIT_ACCOUNT_KEY,
-            bytes("")
+            KeyValueType.CONTRACT_ID,
+            address(this)
         );
 
-        IHederaTokenService.Expiry memory expiry = IHederaTokenService.Expiry(
-            0,
-            address(this),
-            8000000
-        );
+        IHederaTokenService.HederaToken memory token;
+        token.name = name;
+        token.symbol = symbol;
+        token.memo = "";
+        token.treasury = address(this);
+        token.tokenSupplyType = true; // set supply to FINITE
+        token.maxSupply = 10;
+        token.tokenKeys = keys;
+        token.freezeDefault = false;
+        token.expiry = createAutoRenewExpiry(address(this), 7000000);
 
-        IHederaTokenService.HederaToken memory token = IHederaTokenService
-            .HederaToken(
-                name,
-                symbol,
-                address(this),
-                "",
-                true,
-                1000,
-                false,
-                keys,
-                expiry
-            );
-
-        (int responseCode, address tokenAddress) = HederaTokenService
+        (int responseCode, address createdToken) = HederaTokenService
             .createNonFungibleToken(token);
 
         if (responseCode != HederaResponseCodes.SUCCESS) {
-            revert();
+            revert("Failed to create non-fungible token");
         }
-
-        emit CreatedToken(tokenAddress);
+        return createdToken;
     }
 
     function mintNFT(

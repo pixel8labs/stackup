@@ -4,9 +4,10 @@ import contract from '../artifacts/contracts/EScrow.sol/EScrow.json';
 async function main() {
   const provider = new ethers.providers.JsonRpcProvider("https://testnet.hashio.io/api")
   const w = new ethers.Wallet("30b061e135edbf11517c3c0375dee196947761efc85ddff2d579204dc8b8742f", provider);
-  const c = new ethers.Contract("0xD9E6EDA1bD40b8B99d3362BcFD210B303F5EC249", contract.abi, w);
-  const tx = await c.mintNFT("0x000000000000000000000000000000000034FC4f", [Buffer.from("ipfs://QmW3y63RPmRJ7kYpBrWeTkbVWB3mbNHrSnS3c6XBq3HNMp")], {
-    gasLimit: 1_000_000
+  const c = new ethers.Contract("0x04e23fE5734F0022e7dB14cCffAc499C2c3566dF", contract.abi, w);
+  const tx = await c.borrowing("0x000000000000000000000000000000000034fC58", 1, {
+    gasLimit: 1_000_000,
+    value: ethers.utils.parseEther("10")
   });
   const res = await tx.wait();
 

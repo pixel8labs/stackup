@@ -5,9 +5,13 @@ async function main() {
   const provider = new ethers.providers.JsonRpcProvider("https://testnet.hashio.io/api")
   const w = new ethers.Wallet("30b061e135edbf11517c3c0375dee196947761efc85ddff2d579204dc8b8742f", provider);
   const c = new ethers.Contract("0x04e23fE5734F0022e7dB14cCffAc499C2c3566dF", contract.abi, w);
-  const tx = await c.createNFT("StackUp Car NFT Program", "CAR", {
-    value: ethers.BigNumber.from("20000000000000000000"),
-    gasLimit: 1_000_000
+  const tx = await c.returning(
+    "0x000000000000000000000000000000000034fC58", 
+    "0x9b3ed51Ced9eEdEa7B5b3f48972F15C99cf8c04c",
+    "0x04e23fE5734F0022e7dB14cCffAc499C2c3566dF",
+    1, {
+    gasLimit: 1_000_000,
+    value: ethers.utils.parseEther("10")
   });
   const res = await tx.wait();
 
