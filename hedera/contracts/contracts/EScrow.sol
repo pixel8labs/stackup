@@ -1,43 +1,77 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.7.0 <0.8.9;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.9;
 
-import "https://github.com/hashgraph/hedera-smart-contracts/blob/v0.2.0/contracts/hts-precompile/HederaResponseCodes.sol";
-import "https://github.com/hashgraph/hedera-smart-contracts/blob/v0.2.0/contracts/hts-precompile/IHederaTokenService.sol";
-import "https://github.com/hashgraph/hedera-smart-contracts/blob/v0.2.0/contracts/hts-precompile/HederaTokenService.sol";
-import "https://github.com/hashgraph/hedera-smart-contracts/blob/v0.2.0/contracts/hts-precompile/ExpiryHelper.sol";
+// Uncomment this line to use console.log
+// import "hardhat/console.sol";
+
+import "./HederaTokenService.sol";
+import "./IHederaTokenService.sol";
+import "./HederaResponseCodes.sol";
+import "./ExpiryHelper.sol";
 
 contract EScrow is ExpiryHelper {
+    event CreatedToken(address tokenAddress);
+
     function createNFT(
         string memory name,
         string memory symbol
-    ) external payable returns (address) {
+    ) public payable {
         IHederaTokenService.TokenKey[]
-            memory keys = new IHederaTokenService.TokenKey[](1);
-
-        // Set this contract as supply
+            memory keys = new IHederaTokenService.TokenKey[](5);
         keys[0] = getSingleKey(
+            KeyType.ADMIN,
+            KeyType.PAUSE,
+            KeyValueType.INHERIT_ACCOUNT_KEY,
+            bytes("")
+        );
+        keys[1] = getSingleKey(
+            KeyType.KYC,
+            KeyValueType.INHERIT_ACCOUNT_KEY,
+            bytes("")
+        );
+        keys[2] = getSingleKey(
+            KeyType.FREEZE,
+            KeyValueType.INHERIT_ACCOUNT_KEY,
+            bytes("")
+        );
+        keys[3] = getSingleKey(
             KeyType.SUPPLY,
-            KeyValueType.CONTRACT_ID,
-            address(this)
+            KeyValueType.INHERIT_ACCOUNT_KEY,
+            bytes("")
+        );
+        keys[4] = getSingleKey(
+            KeyType.WIPE,
+            KeyValueType.INHERIT_ACCOUNT_KEY,
+            bytes("")
         );
 
-        IHederaTokenService.HederaToken memory token;
-        token.name = name;
-        token.symbol = symbol;
-        token.memo = "";
-        token.treasury = address(this);
-        token.tokenSupplyType = true; // set supply to FINITE
-        token.maxSupply = 10;
-        token.tokenKeys = keys;
-        token.freezeDefault = false;
+        IHederaTokenService.Expiry memory expiry = IHederaTokenService.Expiry(
+            0,
+            address(this),
+            8000000
+        );
 
-        (int responseCode, address createdToken) = HederaTokenService
+        IHederaTokenService.HederaToken memory token = IHederaTokenService
+            .HederaToken(
+                name,
+                symbol,
+                address(this),
+                "",
+                true,
+                1000,
+                false,
+                keys,
+                expiry
+            );
+
+        (int responseCode, address tokenAddress) = HederaTokenService
             .createNonFungibleToken(token);
 
         if (responseCode != HederaResponseCodes.SUCCESS) {
-            revert("Failed to create non-fungible token");
+            revert();
         }
-        return createdToken;
+
+        emit CreatedToken(tokenAddress);
     }
 
     function mintNFT(
@@ -59,19 +93,17 @@ contract EScrow is ExpiryHelper {
 
     function borrowing(
         address token,
-        address receiver,
-        address treasury,
         int64 serial
     ) external payable returns (int) {
         // Transfer 1 HBAR
         require(msg.value >= 100000000, "Invalid Fund");
 
         // Transfer NFT to User
-        HederaTokenService.associateToken(receiver, token);
+        HederaTokenService.associateToken(msg.sender, token);
         int response = HederaTokenService.transferNFT(
             token,
-            treasury,
-            receiver,
+            address(this),
+            msg.sender,
             serial
         );
 

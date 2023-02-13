@@ -21,6 +21,7 @@ import GiveScore from "./pages/GiveScore";
 import Borrow from "./pages/BorrowNFT";
 import Return from "./pages/ReturnNFT";
 import Web3 from "web3";
+import ethers from "ethers";
 
 function App() {
   const [defaultAccount, setDefaultAccount] = useState(null);
@@ -94,6 +95,24 @@ function App() {
 
     getScore();
   }, []);
+
+  useEffect(() => {
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
+
+      window.ethereum.on("accountsChanged", changeConnectedAccount);
+    }
+  }, []);
+
+  const changeConnectedAccount = async (newAddress) => {
+    try {
+      newAddress = Array.isArray(newAddress) ? newAddress[0] : newAddress;
+
+      setDefaultAccount(newAddress);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // create a new car NFT
   const createNFT = async (name, symbol, maxSupply) => {
