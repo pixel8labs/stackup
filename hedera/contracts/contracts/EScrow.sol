@@ -86,15 +86,13 @@ contract EScrow is ExpiryHelper {
 
     function returning(
         address token,
-        address payable receiver,
-        address treasury,
         int64 serial
     ) external payable returns (int) {
         // Return NFT from User
         int response = HederaTokenService.transferNFT(
             token,
-            receiver,
-            treasury,
+            msg.sender,
+            address(this),
             serial
         );
 
@@ -103,7 +101,7 @@ contract EScrow is ExpiryHelper {
         }
 
         // Return HBAR to user
-        receiver.transfer(100000000);
+        payable(address(msg.sender)).transfer(100000000);
 
         return response;
     }

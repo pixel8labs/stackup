@@ -113,7 +113,7 @@ function App() {
     try {
       console.log(contract, tokenAddress, AccountId.fromString(id).toSolidityAddress())
       if(!contract) getContract();
-      const tx = await contract.borrowing(tokenAddress, id, {
+      const tx = await contract.borrowing(tokenAddress, 1, {
         value: ethers.utils.parseEther("1"),
         gasLimit: 1_000_000
       });
@@ -130,7 +130,7 @@ function App() {
   const returnNFT = async (id) => {
     try {
       if(!contract) getContract();
-      const tx = await contract.returning(tokenAddress, id, {
+      const tx = await contract.returning(tokenAddress, 1, {
         gasLimit: 1_000_000
       });
       await tx.wait();
@@ -212,7 +212,7 @@ function App() {
         <Route path="/" element={<CreateNFT createNFT={createNFT} />} />
         <Route path="/score" element={<GiveScore giveScore={giveScore} />} />
         <Route path="/borrow" element={<Borrow borrowNFT={borrowNFT} />} />
-        <Route path="/return" element={<Return returnNFT={returnNFT} />} />
+        <Route path="/return" element={<Return returnNFT={returnNFT} address={defaultAccount} />} />
       </Routes>
     </>
   );
