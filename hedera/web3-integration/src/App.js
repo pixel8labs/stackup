@@ -13,6 +13,8 @@ import {
   TokenType,
   TokenSupplyType,
   Hbar,
+  TopicCreateTransaction,
+  TopicMessageSubmitTransaction,
 } from "@hashgraph/sdk";
 import { Buffer } from "buffer";
 import { Routes, Route, NavLink } from "react-router-dom";
@@ -21,6 +23,7 @@ import GiveScore from "./pages/GiveScore";
 import Borrow from "./pages/BorrowNFT";
 import Return from "./pages/ReturnNFT";
 import Web3 from "web3";
+import ESCrow from "./ESCrow.json";
 
 function App() {
   const [defaultAccount, setDefaultAccount] = useState(null);
@@ -155,45 +158,74 @@ function App() {
 
   // borrow a car NFT
   const borrowNFT = async (id) => {
-    try {
-      const nftId = AccountId.fromString(id);
+    // try {
+    const nftId = AccountId.fromString(id);
 
-      // Borrowing the Car
-      const borrowCar = await new ContractExecuteTransaction()
-        .setContractId(EScrowId)
-        .setGas(1000000)
-        .setFunction(
-          "borrowing",
-          new ContractFunctionParameters()
-            .addAddress(nftId.toSolidityAddress())
-            .addAddress(customerId.toSolidityAddress())
-            .addAddress(treasuryId.toSolidityAddress())
-            .addInt64(1)
-        )
-        .setPayableAmount(Hbar.fromTinybars(100000000))
-        .freezeWith(clientCustomer)
-        .sign(treasuryKey);
+    // // Borrowing the Car
+    // const borrowCar = await new ContractExecuteTransaction()
+    //   .setContractId(EScrowId)
+    //   .setGas(1000000)
+    //   .setFunction(
+    //     "borrowing",
+    //     new ContractFunctionParameters()
+    //       .addAddress(nftId.toSolidityAddress())
+    //       .addAddress(customerId.toSolidityAddress())
+    //       .addAddress(treasuryId.toSolidityAddress())
+    //       .addInt64(1)
+    //   )
+    //   .setPayableAmount(Hbar.fromTinybars(100000000))
+    //   .freezeWith(clientCustomer)
+    //   .sign(treasuryKey);
 
-      const borrowCarTx = await borrowCar.execute(clientCustomer);
-      const borrowCarReceipt = await borrowCarTx.getReceipt(clientCustomer);
+    // const borrowCarTx = await borrowCar.execute(clientCustomer);
+    // const borrowCarReceipt = await borrowCarTx.getReceipt(clientCustomer);
 
-      console.log(`Transfer Status: ${borrowCarReceipt.status}`);
+    // console.log(`Transfer Status: ${borrowCarReceipt.status}`);
 
-      // Balance NFT Check
-      let customerBalance = await new AccountBalanceQuery()
-        .setAccountId(customerId)
-        .execute(client);
+    // // Balance NFT Check
+    // let customerBalance = await new AccountBalanceQuery()
+    //   .setAccountId(customerId)
+    //   .execute(client);
 
-      console.log(
-        `- Customer's NFT: ${customerBalance.tokens._map.get(
-          nftId.toString()
-        )} NFTs of ID ${nftId}`
-      );
+    // console.log(
+    //   `- Customer's NFT: ${customerBalance.tokens._map.get(
+    //     nftId.toString()
+    //   )} NFTs of ID ${nftId}`
+    // );
 
-      alert("Successfully Borrowed Car!");
-    } catch (e) {
-      alert("Fail to Borrow Car");
-    }
+    // deploy contract with Web3.js
+    const wallet = await web3.eth.accounts.wallet.add(
+      process.env.REACT_APP_OPERATOR_PRIVATE_KEY
+    );
+    const Greeter = new web3.eth.Contract(ESCrow.abi);
+    const greeter = await Greeter.deploy({
+      data: ESCrow.data.bytecode.object,
+      arguments: [],
+    });
+    const contract = await greeter.send({
+      from: wallet.address,
+      gas: 300000,
+    });
+
+    console.log(`Greeter deployed to: ${contract._address}`);
+
+    const call = await contract.methods
+      .borrowing(
+        nftId.toSolidityAddress(),
+        customerId.toSolidityAddress(),
+        treasuryId.toSolidityAddress(),
+        1
+      )
+      .send({
+        from: wallet.address,
+        gas: 300000,
+        value: Hbar.fromTinybars(100000000),
+      });
+
+    //   alert("Successfully Borrowed Car!");
+    // } catch (e) {
+    //   alert("Fail to Borrow Car");
+    // }
   };
 
   // return a car NFT
@@ -272,6 +304,36 @@ function App() {
       alert("Fail to Give Score");
     }
   };
+
+  async function createTopic() {
+    const createTopicTransactionId = await new TopicCreateTransaction().execute(
+      client
+    );
+
+    // Get the receipt of our transaction, to see if it was successful!
+    const createTopicReceipt = await createTopicTransactionId.getReceipt(
+      client
+    );
+
+    // If it was successful, it will contain a new topic ID!
+    const newTopicId = createTopicReceipt.topicId;
+
+    console.log("Our topic:" + newTopicId);
+  }
+  // createTopic();
+
+  async function createLogs(accountId, type, tokenId) {
+    const topicId = "0.0.3046126";
+
+    const newHCSMessage = await new TopicMessageSubmitTransaction()
+      .setTopicId(topicId.toString())
+      .setMessage(`Type: ${type}, AccountId: ${accountId}, TokenId: ${tokenId}`)
+      .execute(client);
+
+    // Get the receipt of our message to confirm it was successful
+    const messageReceipt = await newHCSMessage.getReceipt(client);
+    console.log(messageReceipt);
+  }
 
   return (
     <>
