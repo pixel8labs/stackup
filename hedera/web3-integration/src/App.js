@@ -29,21 +29,21 @@ function App() {
   const [defaultAccount, setDefaultAccount] = useState(null);
   const [score, setScore] = useState(0);
 
-  const web3 = new Web3(
-    new Web3.providers.HttpProvider("https://testnet.hashio.io/api"),
-    {
-      keepalive: true,
-      headers: [{ name: "Access-Control-Allow-Origin", value: "*" }],
-      withCredentials: false,
-      timeout: 30 * 1000,
-    }
-  );
+  // const web3 = new Web3(
+  //   new Web3.providers.HttpProvider("https://testnet.hashio.io/api"),
+  //   {
+  //     keepalive: true,
+  //     headers: [{ name: "Access-Control-Allow-Origin", value: "*" }],
+  //     withCredentials: false,
+  //     timeout: 30 * 1000,
+  //   }
+  // );
 
   const connect = async () => {
     if (window.ethereum) {
       await window.ethereum.request({ method: "eth_requestAccounts" });
       window.web3 = new Web3(window.ethereum);
-      const account = web3.eth.accounts;
+      const account = window.web3.eth.accounts;
       // get the current MetaMask selected/active wallet
       const walletAddress = account.givenProvider.selectedAddress;
       setDefaultAccount(walletAddress);
@@ -194,21 +194,30 @@ function App() {
     // );
 
     // deploy contract with Web3.js
-    const wallet = await web3.eth.accounts.wallet.add(
-      process.env.REACT_APP_OPERATOR_PRIVATE_KEY
-    );
-    const Greeter = new web3.eth.Contract(ESCrow.abi);
-    const greeter = await Greeter.deploy({
-      data: ESCrow.data.bytecode.object,
-      arguments: [],
-    });
-    const contract = await greeter.send({
-      from: wallet.address,
-      gas: 300000,
-    });
+    // const wallet = await window.web3.eth.accounts.wallet.add(
+    //   process.env.REACT_APP_OPERATOR_PRIVATE_KEY
+    // );
+    const contract = new window.web3.eth.Contract(ESCrow.abi, AccountId.fromString(EScrowId).toSolidityAddress());
+    // const greeter = await Greeter.deploy({
+    //   data: ESCrow.data.bytecode.object,
+    //   arguments: [],
+    // });
+    // const contract = await greeter.send({
+    //   from: wallet.address,
+    //   gas: 200000,
+    // });
 
-    console.log(`Greeter deployed to: ${contract._address}`);
+    // console.log(`Greeter deployed to: ${contract._address}`);
 
+    console.log(defaultAccount);
+    // const gas = await contract.methods
+    //   .borrowing(
+    //     nftId.toSolidityAddress(),
+    //     customerId.toSolidityAddress(),
+    //     treasuryId.toSolidityAddress(),
+    //     1
+    //   ).estimateGas()
+    //   console.log(gas);
     const call = await contract.methods
       .borrowing(
         nftId.toSolidityAddress(),
@@ -217,9 +226,10 @@ function App() {
         1
       )
       .send({
-        from: wallet.address,
-        gas: 300000,
-        value: Hbar.fromTinybars(100000000),
+        from: defaultAccount,
+        gas: 5000000,
+        // value: Hbar.fromTinybars(100000000),
+        value: Web3.utils.toWei(Web3.utils.toBN(1), 'ether'),
       });
 
     //   alert("Successfully Borrowed Car!");

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import moment from "moment";
+import { AccountId } from "@hashgraph/sdk";
 
 function Return({ returnNFT }) {
   const [data, setData] = useState();
@@ -8,8 +9,10 @@ function Return({ returnNFT }) {
     // Fetching data from Hedera Mirror Node for car that can be returned
     const readData = async () => {
       try {
+        // console.log(AccountId.fromEvmAddress('9b3ed51Ced9eEdEa7B5b3f48972F15C99cf8c04c'))
+        // console.log(AccountId.aliasEvmAddress('0x9b3ed51Ced9eEdEa7B5b3f48972F15C99cf8c04c'))
         await fetch(
-          `https://testnet.mirrornode.hedera.com/api/v1/accounts/${process.env.REACT_APP_CUSTOMER_ACCOUNT_ID}/nfts?order=asc`
+          `https://testnet.mirrornode.hedera.com/api/v1/accounts/0.0.3465930/nfts?order=asc`
         )
           .then((response) => response.json())
           .then((data) => {
