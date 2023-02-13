@@ -27,9 +27,7 @@ function App() {
   const [score, setScore] = useState(0);
 
   const web3 = new Web3(
-    new Web3.providers.HttpProvider(
-      "https://pool.hedera.testnet.arkhia.io/json-rpc/v1/beOOJeae4e32dyK33252424dRda54963"
-    ),
+    new Web3.providers.HttpProvider("https://testnet.hashio.io/api"),
     {
       keepalive: true,
       headers: [{ name: "Access-Control-Allow-Origin", value: "*" }],

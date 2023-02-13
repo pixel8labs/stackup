@@ -38,6 +38,9 @@ function App() {
   // create Hedera testnet client
   // {PUT YOUR CODE HERE}
 
+  // create a new topic to store logs
+  // {PUT YOUR CODE HERE}
+
   useEffect(() => {
     // get the user credit score from the mirror node
     const getScore = async () => {
