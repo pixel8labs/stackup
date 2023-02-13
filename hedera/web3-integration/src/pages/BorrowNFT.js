@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
 import moment from "moment";
+import { AccountId } from "@hashgraph/sdk";
 
 function Borrow({ borrowNFT }) {
   const [data, setData] = useState();
   const [flag, setFlag] = useState(false);
+
+  const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
 
   useEffect(() => {
     // Fetching data from Hedera Mirror Node for car that can be borrowed
     const readData = async () => {
       try {
         await fetch(
-          `https://testnet.mirrornode.hedera.com/api/v1/accounts/${process.env.REACT_APP_TREASURY_ID}/nfts?order=asc`
+          `https://testnet.mirrornode.hedera.com/api/v1/accounts/${contractAddress}/nfts?order=asc`
         )
           .then((response) => response.json())
           .then((data) => {
