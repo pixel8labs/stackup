@@ -74,7 +74,7 @@ function Return({ returnNFT, address }) {
                 <button
                   className="return-btn"
                   onClick={() => {
-                    returnNFT(nft.token_id);
+                    returnNFT(nft.token_id, nft.serial_number);
                     setFlag(!flag);
                   }}
                 >

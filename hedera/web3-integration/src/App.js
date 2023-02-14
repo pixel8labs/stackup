@@ -114,7 +114,6 @@ function App() {
   // borrow a car NFT
   const borrowNFT = async (id, serial) => {
     try {
-      console.log(serial);
       if (!contract) getContract();
       const tx = await contract.borrowing(
         AccountId.fromString(id).toSolidityAddress(),
@@ -134,12 +133,16 @@ function App() {
   };
 
   // return a car NFT
-  const returnNFT = async (id) => {
+  const returnNFT = async (id, serial) => {
     try {
       if (!contract) getContract();
-      const tx = await contract.returning(tokenAddress, 1, {
-        gasLimit: 1_000_000,
-      });
+      const tx = await contract.returning(
+        AccountId.fromString(id).toSolidityAddress(),
+        serial,
+        {
+          gasLimit: 1_000_000,
+        }
+      );
       await tx.wait();
 
       alert("Successfully Returned Car!");
