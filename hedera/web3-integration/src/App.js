@@ -68,9 +68,6 @@ function App() {
   const treasuryKey = PrivateKey.fromString(
     process.env.REACT_APP_TREASURY_PRIVATE_KEY
   );
-  const customerId = AccountId.fromString(
-    process.env.REACT_APP_CUSTOMER_ACCOUNT_ID
-  );
 
   const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
   const tokenAddress = process.env.REACT_APP_TOKEN_ADDRESS;
@@ -160,7 +157,7 @@ function App() {
       // Credit Scoring
       const creditScoring = await new TransferTransaction()
         .addTokenTransfer(ftId.toString(), treasuryId, -1)
-        .addTokenTransfer(ftId.toString(), customerId, 1)
+        .addTokenTransfer(ftId.toString(), customer, 1)
         .freezeWith(client)
         .sign(treasuryKey);
 

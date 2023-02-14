@@ -23,7 +23,7 @@ function App() {
 
   // connect to wallet using Ethers.js
   const connect = async () => {
-    // {PUT YOUR CODE HERE}}
+    // INSERT CODE FOR DECLARING ETHERS.JS PROVIDER AND CONNECT FUNCTION HERE
   };
 
   useEffect(() => {
@@ -49,13 +49,13 @@ function App() {
   };
 
   // get variables value from the .env file
-  // {PUT YOUR CODE HERE}
+  // INSERT .ENV VARIABLES HERE
 
   const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
   const tokenAddress = process.env.REACT_APP_TOKEN_ADDRESS;
 
   // create Hedera testnet client
-  // {PUT YOUR CODE HERE}
+  // INSERT CODE FOR CREATING HEDERA TESTNET CLIENT HERE
 
   useEffect(() => {
     // get the user credit score from the mirror node
@@ -79,7 +79,7 @@ function App() {
   // create a new car NFT
   const createNFT = async (cid) => {
     try {
-      // {PUT YOUR CODE HERE}
+      // INSERT CODE FOR CREATING A NEW CAR BY MINTING THE CAR NFT HERE USING ETHERS.JS
 
       alert(`Successfully created car NFT with token ID!`);
     } catch (e) {
@@ -91,7 +91,7 @@ function App() {
   // borrow a car NFT
   const borrowNFT = async (id) => {
     try {
-      // {PUT YOUR CODE HERE}
+      // INSERT CODE FOR BORROWING A CAR NFT HERE USING ETHERS.JS
 
       alert("Successfully Borrowed Car!");
     } catch (e) {
@@ -103,7 +103,7 @@ function App() {
   // return a car NFT
   const returnNFT = async (id) => {
     try {
-      // {PUT YOUR CODE HERE}
+      // INSERT CODE FOR RETURNING A CAR NFT HERE USING ETHERS.JS
 
       alert("Successfully Returned Car!");
     } catch (e) {
@@ -117,7 +117,7 @@ function App() {
     try {
       const ftId = AccountId.fromString(process.env.REACT_APP_FT_ID);
 
-      // {PUT YOUR CODE HERE}
+      // INSERT CODE FOR GIVING A CREDIT/REPUTATION SCORE TO A CUSTOMER HERE USING HEDERA TOKEN SERVICE API
 
       alert("Successfully Give Score!");
     } catch (e) {
