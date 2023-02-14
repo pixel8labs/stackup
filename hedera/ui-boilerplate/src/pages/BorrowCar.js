@@ -1,10 +1,26 @@
 import { useEffect, useState } from "react";
 import moment from "moment";
-import { AccountId } from "@hashgraph/sdk";
+
+function BorrowButton({ nft, borrowCar, flag, setFlag }) {
+  const [isLoading, setIsLoading] = useState(false);
+  return (
+    <button
+      className="primary-btn"
+      onClick={async () => {
+        setIsLoading(true);
+        await borrowCar(nft.token_id, nft.serial_number);
+        setIsLoading(false);
+        setFlag(!flag);
+      }}
+      disabled={isLoading}
+    >
+      {isLoading ? "Borrowing..." : "Borrow"}
+    </button>
+  );
+}
 
 function Borrow({ borrowCar }) {
   const [data, setData] = useState();
-  const [isLoading, setIsLoading] = useState(false);
   const [flag, setFlag] = useState(false);
 
   const contractAddress = process.env.REACT_APP_ESCROW_ADDRESS;
@@ -26,7 +42,7 @@ function Borrow({ borrowCar }) {
     };
 
     readData();
-  }, [flag]);
+  }, [contractAddress, flag]);
 
   return (
     <div className="App">
@@ -75,18 +91,12 @@ function Borrow({ borrowCar }) {
               </table>
               {/* Button for borrowing the car */}
               <div className="btn-container">
-                <button
-                  className="primary-btn"
-                  onClick={async () => {
-                    setIsLoading(true);
-                    await borrowCar(nft.token_id, nft.serial_number);
-                    setIsLoading(false);
-                    setFlag(!flag);
-                  }}
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Borrowing..." : "Borrow"}
-                </button>
+                <BorrowButton
+                  nft={nft}
+                  borrowCar={borrowCar}
+                  flag={flag}
+                  setFlag={setFlag}
+                />
               </div>
             </div>
           </div>

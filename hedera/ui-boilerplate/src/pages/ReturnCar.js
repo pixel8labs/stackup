@@ -1,9 +1,26 @@
 import { useEffect, useState } from "react";
 import moment from "moment";
 
+function ReturnButton({ nft, returnCar, flag, setFlag }) {
+  const [isLoading, setIsLoading] = useState(false);
+  return (
+    <button
+      className="return-btn"
+      onClick={async () => {
+        setIsLoading(true);
+        await returnCar(nft.token_id, nft.serial_number);
+        setIsLoading(false);
+        setFlag(!flag);
+      }}
+      disabled={isLoading}
+    >
+      {isLoading ? "Returning..." : "Return"}
+    </button>
+  );
+}
+
 function Return({ returnCar, address }) {
   const [data, setData] = useState();
-  const [isLoading, setIsLoading] = useState(false);
   const [flag, setFlag] = useState(false);
 
   useEffect(() => {
@@ -23,7 +40,7 @@ function Return({ returnCar, address }) {
     };
 
     readData();
-  }, [flag]);
+  }, [address, flag]);
 
   return (
     <div className="App">
@@ -72,18 +89,12 @@ function Return({ returnCar, address }) {
               </table>
               {/* Button for returning the car */}
               <div className="btn-container">
-                <button
-                  className="return-btn"
-                  onClick={async () => {
-                    setIsLoading(true);
-                    await returnCar(nft.token_id, nft.serial_number);
-                    setIsLoading(false);
-                    setFlag(!flag);
-                  }}
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Returning..." : "Return"}
-                </button>
+                <ReturnButton
+                  nft={nft}
+                  returnCar={returnCar}
+                  flag={flag}
+                  setFlag={setFlag}
+                />
               </div>
             </div>
           </div>

@@ -4,8 +4,6 @@ import {
   AccountId,
   PrivateKey,
   Client,
-  AccountBalanceQuery,
-  TransferTransaction,
   TopicMessageSubmitTransaction,
 } from "@hashgraph/sdk";
 import { Buffer } from "buffer";
@@ -22,36 +20,32 @@ function App() {
   const [score, setScore] = useState(0);
   const [contract, setContract] = useState();
 
-  const connect = async () => {
-    if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(
-        window.ethereum,
-        "any"
-      );
+  // PART 1 - DEFINE ENVIRONMENT VARIABLES FROM .ENV FILE
 
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      signer.getAddress().then(setDefaultAccount);
-      const c = new ethers.Contract(contractAddress, escrow.abi, signer);
-      setContract(c);
-      window.ethereum.on("accountsChanged", changeConnectedAccount);
+  const merchantAddress = process.env.REACT_APP_MERCHANT_ADDRESS;
+
+  // PART 2 - CREATE HEDERA TESTNET CLIENT INSTANCE
+
+  const connect = async () => {
+    // PART 3 - CONNECT WALLET FUNCTIONALITY USING ETHERS.JS
+  };
+
+  const changeConnectedAccount = async (newAddress) => {
+    try {
+      newAddress = Array.isArray(newAddress) ? newAddress[0] : newAddress;
+      setDefaultAccount(newAddress);
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  // get the user credit score from the mirror node
+  const getContract = async () => {
+    // PART 4 - CREATE CONTRACT INSTANCE USING ETHERS.JS
+  };
+
   const getScore = async () => {
     try {
-      await fetch(
-        `https://testnet.mirrornode.hedera.com/api/v1/accounts/${defaultAccount}/tokens?token.id=${ftId}`
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.tokens) {
-            setScore(0);
-            return;
-          }
-          setScore(data?.tokens[0]?.balance);
-        });
+      // PART 5 - GET USER REPUTATION SCORE FROM MIRROR NODE
     } catch (e) {
       console.log(e);
     }
@@ -59,52 +53,12 @@ function App() {
 
   useEffect(() => {
     connect();
-    getScore();
   }, [defaultAccount]);
 
-  const getContract = async () => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-    const signer = provider.getSigner();
-    signer.getAddress().then(setDefaultAccount);
-    const c = new ethers.Contract(contractAddress, escrow.abi, signer);
-    setContract(c);
-  };
-
-  const changeConnectedAccount = async (newAddress) => {
-    try {
-      newAddress = Array.isArray(newAddress) ? newAddress[0] : newAddress;
-
-      setDefaultAccount(newAddress);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const merchantId = AccountId.fromString(process.env.REACT_APP_MERCHANT_ID);
-  const merchantKey = PrivateKey.fromString(
-    process.env.REACT_APP_MERCHANT_PRIVATE_KEY
-  );
-  const merchantAddress = process.env.REACT_APP_MERCHANT_ADDRESS;
-
-  const contractAddress = process.env.REACT_APP_ESCROW_ADDRESS;
-  const nftAddress = process.env.REACT_APP_NFT_ADDRESS;
-  const nftId = AccountId.fromSolidityAddress(nftAddress).toString();
-  const ftAddress = process.env.REACT_APP_FT_ADDRESS;
-  const ftId = AccountId.fromSolidityAddress(ftAddress).toString();
-  const topicId = process.env.REACT_APP_TOPIC_ID;
-
-  // create Hedera testnet client
-  const client = Client.forTestnet().setOperator(merchantId, merchantKey);
-
-  // create a new car NFT
-  const createNewCar = async (cid) => {
+  const createCar = async (cid) => {
     try {
       if (!contract) getContract();
-      const tx = await contract.mintNFT(nftAddress, [Buffer.from(cid)], {
-        gasLimit: 1_000_000,
-      });
-      const result = await tx.wait();
-      console.log(result);
+      // PART 6 - CREATE NEW CAR TO BE BORROWED FUNCTION
 
       alert(`Successfully created car NFT!`);
     } catch (e) {
@@ -113,32 +67,12 @@ function App() {
     }
   };
 
-  // borrow a car NFT
   const borrowCar = async (id, serial) => {
     try {
       if (!contract) getContract();
-      const tx = await contract.borrowing(
-        AccountId.fromString(id).toSolidityAddress(),
-        serial,
-        {
-          value: ethers.utils.parseEther("1"),
-          gasLimit: 1_000_000,
-        }
-      );
-      await tx.wait();
+      // PART 7 - BORROW CAR FUNCTION
 
-      // Submit A Logs To The Topic
-      new TopicMessageSubmitTransaction()
-        .setTopicId(topicId)
-        .setMessage(
-          `{
-            type: Borrowing,
-            accountAddr: ${defaultAccount},
-            tokenId: ${id},
-            serial: ${serial}
-          }`
-        )
-        .execute(client);
+      // PART 8 - SUBMIT BORROW LOGS TO THE TOPIC
 
       alert("Successfully Borrowed Car!");
     } catch (e) {
@@ -147,31 +81,12 @@ function App() {
     }
   };
 
-  // return a car NFT
   const returnCar = async (id, serial) => {
     try {
       if (!contract) getContract();
-      const tx = await contract.returning(
-        AccountId.fromString(id).toSolidityAddress(),
-        serial,
-        {
-          gasLimit: 1_000_000,
-        }
-      );
-      await tx.wait();
+      // PART 9 - RETURN CAR FUNCTION
 
-      // Submit A Logs To The Topic
-      new TopicMessageSubmitTransaction()
-        .setTopicId(topicId)
-        .setMessage(
-          `{
-            type: Returning,
-            accountAddr: ${defaultAccount},
-            tokenId: ${id},
-            serial: ${serial}
-          }`
-        )
-        .execute(client);
+      // PART 10 - SUBMIT RETURN LOGS TO THE TOPIC
 
       alert("Successfully Returned Car!");
     } catch (e) {
@@ -180,47 +95,13 @@ function App() {
     }
   };
 
-  // give a credit/reputation score to a customer
+  // give a reputation score to a customer
   const giveScore = async (customer, score) => {
     try {
-      const ftId = AccountId.fromString(process.env.REACT_APP_FT_ID);
+      if (!contract) getContract();
+      // PART 11 - GIVE REPUTATION SCORE FUNCTION
 
-      // Credit Scoring
-      const creditScoring = await new TransferTransaction()
-        .addTokenTransfer(ftId.toString(), merchantId, -1)
-        .addTokenTransfer(ftId.toString(), customer, 1)
-        .freezeWith(client)
-        .sign(merchantKey);
-
-      // submit the transaction
-      const creditScoringTx = await creditScoring.execute(client);
-      const creditScoringReceipt = await creditScoringTx.getReceipt(client);
-
-      console.log(`Credit Scoring Status: ${creditScoringReceipt.status} \n`);
-
-      // Balance FT Check
-      const customerBalance = await new AccountBalanceQuery()
-        .setAccountId(customer)
-        .execute(client);
-
-      console.log(
-        `- Customer's FT: ${customerBalance.tokens._map.get(
-          ftId.toString()
-        )} FTs of ID ${ftId} \n`
-      );
-
-      // Submit A Logs To The Topic
-      new TopicMessageSubmitTransaction()
-        .setTopicId(topicId)
-        .setMessage(
-          `{
-          type: Scoring,
-          accountAddr: ${customer},
-          tokenId: ${ftId.toString()},
-          amount: ${1}
-        }`
-        )
-        .execute(client);
+      // PART 12 - SUBMIT GIVE REPUTATION SCORE LOGS TO THE TOPIC
 
       alert("Successfully Give Score!");
     } catch (e) {
@@ -229,35 +110,41 @@ function App() {
     }
   };
 
+  const isMerchant = defaultAccount === merchantAddress;
   return (
     <>
       <nav>
         <ul className="nav">
-          {defaultAccount === merchantAddress ? (
+          {isMerchant ? (
             <>
               <NavLink to="/" className="nav-item">
                 Add Car
               </NavLink>
-              <NavLink to="/score" className="nav-item">
+              <NavLink to="/give" className="nav-item">
                 Give Score
               </NavLink>
             </>
-          ) : (
+          ) : defaultAccount ? (
             <>
-              <NavLink to="/borrow" className="nav-item">
+              <NavLink to="/" className="nav-item">
                 Borrow Car
               </NavLink>
-              <NavLink to="/return" className="nav-item">
+              <NavLink to="/give" className="nav-item">
                 Return Car
               </NavLink>
             </>
+          ) : (
+            <></>
           )}
           <div className="acc-container">
             <p className="acc-score">
-              My Credit Score: {defaultAccount ? score : "0"}
+              My Reputation Score: {defaultAccount ? score : "0"}
             </p>
             <div className="connect-btn">
-              <button onClick={connect} className="primary-btn">
+              <button
+                onClick={defaultAccount ? changeConnectedAccount : connect}
+                className="primary-btn"
+              >
                 {defaultAccount
                   ? `${defaultAccount?.slice(0, 5)}...${defaultAccount?.slice(
                       defaultAccount?.length - 4,
@@ -269,28 +156,31 @@ function App() {
           </div>
         </ul>
       </nav>
+
+      {!defaultAccount ? (
+        <h1 className="center">Connect Your Wallet First</h1>
+      ) : (
+        <></>
+      )}
+
       <Routes>
-        {defaultAccount === merchantAddress ? (
+        {isMerchant ? (
           <>
-            <Route
-              path="/"
-              element={<CreateCar createNewCar={createNewCar} />}
-            />
-            <Route
-              path="/score"
-              element={<GiveScore giveScore={giveScore} />}
-            />
+            <Route path="/" element={<CreateCar createCar={createCar} />} />
+            <Route path="/give" element={<GiveScore giveScore={giveScore} />} />
           </>
-        ) : (
+        ) : defaultAccount ? (
           <>
-            <Route path="/borrow" element={<Borrow borrowCar={borrowCar} />} />
+            <Route path="/" element={<Borrow borrowCar={borrowCar} />} />
             <Route
-              path="/return"
+              path="/give"
               element={
                 <Return returnCar={returnCar} address={defaultAccount} />
               }
             />
           </>
+        ) : (
+          <></>
         )}
       </Routes>
     </>
