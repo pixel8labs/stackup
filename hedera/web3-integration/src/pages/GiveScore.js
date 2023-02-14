@@ -32,7 +32,7 @@ function ScoreForm({ index, account, giveScore, flag, setFlag }) {
           type="submit"
           disabled={isLoading}
         >
-          {isLoading ? "Loading..." : "Give Credit Score"}
+          {isLoading ? "Loading..." : "Give Reputation Score"}
         </button>
       </div>
     </form>

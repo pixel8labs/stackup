@@ -12,7 +12,7 @@ import CreateCar from "./pages/CreateCar";
 import GiveScore from "./pages/GiveScore";
 import Borrow from "./pages/BorrowCar";
 import Return from "./pages/ReturnCar";
-import escrow from "./contract.json";
+import escrow from "./EScrow.json";
 import { ethers } from "ethers";
 
 function App() {
@@ -27,7 +27,14 @@ function App() {
   // PART 2 - CREATE HEDERA TESTNET CLIENT INSTANCE
 
   const connect = async () => {
-    // PART 3 - CONNECT WALLET FUNCTIONALITY USING ETHERS.JS
+    if (window.ethereum) {
+      // PART 3 - CONNECT WALLET FUNCTIONALITY USING ETHERS.JS
+
+      window.ethereum.on("accountsChanged", changeConnectedAccount);
+
+      const c = new ethers.Contract(escrowAddress, escrow.abi, signer);
+      setContract(c);
+    }
   };
 
   const changeConnectedAccount = async (newAddress) => {
@@ -53,6 +60,7 @@ function App() {
 
   useEffect(() => {
     connect();
+    getScore();
   }, [defaultAccount]);
 
   const createCar = async (cid) => {

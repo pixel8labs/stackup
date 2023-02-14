@@ -20,6 +20,20 @@ function App() {
   const [score, setScore] = useState(0);
   const [contract, setContract] = useState();
 
+  const escrowAddress = process.env.REACT_APP_ESCROW_ADDRESS;
+  const nftAddress = process.env.REACT_APP_NFT_ADDRESS;
+  const ftAddress = process.env.REACT_APP_FT_ADDRESS;
+  const ftId = AccountId.fromSolidityAddress(ftAddress).toString();
+  const topicId = process.env.REACT_APP_TOPIC_ID;
+
+  const merchantId = AccountId.fromString(process.env.REACT_APP_MERCHANT_ID);
+  const merchantKey = PrivateKey.fromString(
+    process.env.REACT_APP_MERCHANT_PRIVATE_KEY
+  );
+  const merchantAddress = process.env.REACT_APP_MERCHANT_ADDRESS;
+
+  const client = Client.forTestnet().setOperator(merchantId, merchantKey);
+
   const connect = async () => {
     if (window.ethereum) {
       const provider = new ethers.providers.Web3Provider(
@@ -30,42 +44,11 @@ function App() {
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
       signer.getAddress().then(setDefaultAccount);
+      window.ethereum.on("accountsChanged", changeConnectedAccount);
+
       const c = new ethers.Contract(escrowAddress, escrow.abi, signer);
       setContract(c);
-      getScore();
-      window.ethereum.on("accountsChanged", changeConnectedAccount);
     }
-  };
-
-  // get the user credit score from the mirror node
-  const getScore = async () => {
-    try {
-      await fetch(
-        `https://testnet.mirrornode.hedera.com/api/v1/accounts/${defaultAccount}/tokens?token.id=${ftId}`
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.tokens) {
-            setScore(0);
-            return;
-          }
-          setScore(data?.tokens[0]?.balance);
-        });
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
-  useEffect(() => {
-    connect();
-  }, [defaultAccount]);
-
-  const getContract = async () => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-    const signer = provider.getSigner();
-    signer.getAddress().then(setDefaultAccount);
-    const c = new ethers.Contract(escrowAddress, escrow.abi, signer);
-    setContract(c);
   };
 
   const changeConnectedAccount = async (newAddress) => {
@@ -78,22 +61,38 @@ function App() {
     }
   };
 
-  const merchantId = AccountId.fromString(process.env.REACT_APP_MERCHANT_ID);
-  const merchantKey = PrivateKey.fromString(
-    process.env.REACT_APP_MERCHANT_PRIVATE_KEY
-  );
-  const merchantAddress = process.env.REACT_APP_MERCHANT_ADDRESS;
+  const getContract = async () => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    const signer = provider.getSigner();
+    signer.getAddress().then(setDefaultAccount);
+    const c = new ethers.Contract(escrowAddress, escrow.abi, signer);
+    setContract(c);
+  };
 
-  const escrowAddress = process.env.REACT_APP_ESCROW_ADDRESS;
-  const nftAddress = process.env.REACT_APP_NFT_ADDRESS;
-  const ftAddress = process.env.REACT_APP_FT_ADDRESS;
-  const ftId = AccountId.fromSolidityAddress(ftAddress).toString();
-  const topicId = process.env.REACT_APP_TOPIC_ID;
+  // get the user credit score from the mirror node
+  const getScore = async () => {
+    try {
+      await fetch(
+        `https://testnet.mirrornode.hedera.com/api/v1/accounts/${defaultAccount}/tokens?token.id=${ftId}`
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+          if (!data.tokens[0]) {
+            setScore(0);
+            return;
+          }
+          setScore(data.tokens[0].balance);
+        });
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
-  // create Hedera testnet client
-  const client = Client.forTestnet().setOperator(merchantId, merchantKey);
-
-  const isMerchant = defaultAccount === merchantAddress;
+  useEffect(() => {
+    connect();
+    getScore();
+  }, [defaultAccount]);
 
   // create a new car NFT
   const createCar = async (cid) => {
@@ -102,8 +101,7 @@ function App() {
       const tx = await contract.mintNFT(nftAddress, [Buffer.from(cid)], {
         gasLimit: 1_000_000,
       });
-      const result = await tx.wait();
-      console.log(result);
+      await tx.wait();
 
       alert(`Successfully created car NFT!`);
     } catch (e) {
@@ -131,11 +129,11 @@ function App() {
         .setTopicId(topicId)
         .setMessage(
           `{
-            type: Borrowing,
-            accountAddr: ${defaultAccount},
-            tokenId: ${id},
-            serial: ${serial}
-          }`
+      type: Borrowing,
+      accountAddr: ${defaultAccount},
+      tokenId: ${id},
+      serial: ${serial}
+    }`
         )
         .execute(client);
 
@@ -164,11 +162,11 @@ function App() {
         .setTopicId(topicId)
         .setMessage(
           `{
-            type: Returning,
-            accountAddr: ${defaultAccount},
-            tokenId: ${id},
-            serial: ${serial}
-          }`
+      type: Returning,
+      accountAddr: ${defaultAccount},
+      tokenId: ${id},
+      serial: ${serial}
+    }`
         )
         .execute(client);
 
@@ -200,11 +198,11 @@ function App() {
         .setTopicId(topicId)
         .setMessage(
           `{
-            type: Scoring,
-            accountAddr: ${customer},
-            tokenId: ${ftId.toString()},
-            amount: ${1}
-          }`
+      type: Scoring,
+      accountAddr: ${customer},
+      tokenId: ${ftId.toString()},
+      amount: ${1}
+    }`
         )
         .execute(client);
 
@@ -215,6 +213,7 @@ function App() {
     }
   };
 
+  const isMerchant = defaultAccount === merchantAddress;
   return (
     <>
       <nav>

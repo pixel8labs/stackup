@@ -77,7 +77,7 @@ function GiveScore({ giveScore }) {
   return (
     <div className="App">
       <h1>List of Borrower</h1>
-      {/* Card for giving credit score to user account */}
+      {/* Card for giving reputation score to user account */}
 
       {data?.map((nft, index) => (
         <div className="card" key={index}>
