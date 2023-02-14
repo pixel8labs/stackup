@@ -144,7 +144,7 @@ function App() {
           <div className="acc-container">
             <p className="acc-score">My Credit Score: {score}/5</p>
             <div className="connect-btn">
-              <button onClick={connect} className="primary-btn">
+              <button className="primary-btn">
                 {defaultAccount
                   ? `${defaultAccount?.slice(0, 5)}...${defaultAccount?.slice(
                       defaultAccount?.length - 4,
