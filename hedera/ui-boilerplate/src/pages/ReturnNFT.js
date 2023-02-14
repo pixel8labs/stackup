@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import moment from "moment";
 
-function Return({ returnNFT }) {
+function Return({ returnNFT, address }) {
   const [data, setData] = useState();
 
   useEffect(() => {
@@ -9,7 +9,7 @@ function Return({ returnNFT }) {
     const readData = async () => {
       try {
         await fetch(
-          `https://testnet.mirrornode.hedera.com/api/v1/accounts/${process.env.REACT_APP_CUSTOMER_ACCOUNT_ID}/nfts?order=asc`
+          `https://testnet.mirrornode.hedera.com/api/v1/accounts/${address}/nfts?order=asc`
         )
           .then((response) => response.json())
           .then((data) => {

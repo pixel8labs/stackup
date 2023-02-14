@@ -5,14 +5,7 @@ import {
   PrivateKey,
   Client,
   AccountBalanceQuery,
-  ContractFunctionParameters,
-  ContractExecuteTransaction,
   TransferTransaction,
-  TokenCreateTransaction,
-  TokenMintTransaction,
-  TokenType,
-  TokenSupplyType,
-  Hbar,
 } from "@hashgraph/sdk";
 import { Buffer } from "buffer";
 import { Routes, Route, NavLink } from "react-router-dom";
@@ -20,25 +13,48 @@ import CreateNFT from "./pages/CreateNFT";
 import GiveScore from "./pages/GiveScore";
 import Borrow from "./pages/BorrowNFT";
 import Return from "./pages/ReturnNFT";
-import Web3 from "web3";
+import escrow from "./contract.json";
+import { ethers } from "ethers";
 
 function App() {
   const [defaultAccount, setDefaultAccount] = useState(null);
   const [score, setScore] = useState(0);
+  const [contract, setContract] = useState();
 
-  // declaring the Web3.js provider
-  // {PUT YOUR CODE HERE}
+  // connect to wallet using Ethers.js
+  const connect = async () => {
+    // {PUT YOUR CODE HERE}}
+  };
 
-  // connect to wallet using Web3.js
-  // {PUT YOUR CODE HERE}
+  useEffect(() => {
+    connect();
+  }, []);
+
+  const getContract = async () => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    const signer = provider.getSigner();
+    signer.getAddress().then(setDefaultAccount);
+    const c = new ethers.Contract(contractAddress, escrow.abi, signer);
+    setContract(c);
+  };
+
+  const changeConnectedAccount = async (newAddress) => {
+    try {
+      newAddress = Array.isArray(newAddress) ? newAddress[0] : newAddress;
+
+      setDefaultAccount(newAddress);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // get variables value from the .env file
   // {PUT YOUR CODE HERE}
 
-  // create Hedera testnet client
-  // {PUT YOUR CODE HERE}
+  const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
+  const tokenAddress = process.env.REACT_APP_TOKEN_ADDRESS;
 
-  // create a new topic to store logs
+  // create Hedera testnet client
   // {PUT YOUR CODE HERE}
 
   useEffect(() => {
@@ -61,41 +77,38 @@ function App() {
   }, []);
 
   // create a new car NFT
-  const createNFT = async (name, symbol, maxSupply) => {
+  const createNFT = async (cid) => {
     try {
       // {PUT YOUR CODE HERE}
 
-      alert(`Successfully created car NFT!`);
+      alert(`Successfully created car NFT with token ID!`);
     } catch (e) {
       alert("Failed to create NFT");
+      console.log(e);
     }
   };
 
   // borrow a car NFT
   const borrowNFT = async (id) => {
     try {
-      const nftId = AccountId.fromString(id);
-
-      // Borrowing the Car
       // {PUT YOUR CODE HERE}
 
       alert("Successfully Borrowed Car!");
     } catch (e) {
       alert("Fail to Borrow Car");
+      console.log(e);
     }
   };
 
   // return a car NFT
   const returnNFT = async (id) => {
     try {
-      const nftId = AccountId.fromString(id);
-
-      // Returning the Car
       // {PUT YOUR CODE HERE}
 
       alert("Successfully Returned Car!");
     } catch (e) {
       alert("Fail to Return Car");
+      console.log(e);
     }
   };
 
@@ -104,7 +117,6 @@ function App() {
     try {
       const ftId = AccountId.fromString(process.env.REACT_APP_FT_ID);
 
-      // Credit Scoring
       // {PUT YOUR CODE HERE}
 
       alert("Successfully Give Score!");
@@ -132,7 +144,7 @@ function App() {
           <div className="acc-container">
             <p className="acc-score">My Credit Score: {score}/5</p>
             <div className="connect-btn">
-              <button className="primary-btn">
+              <button onClick={connect} className="primary-btn">
                 {defaultAccount
                   ? `${defaultAccount?.slice(0, 5)}...${defaultAccount?.slice(
                       defaultAccount?.length - 4,
@@ -148,7 +160,10 @@ function App() {
         <Route path="/" element={<CreateNFT createNFT={createNFT} />} />
         <Route path="/score" element={<GiveScore giveScore={giveScore} />} />
         <Route path="/borrow" element={<Borrow borrowNFT={borrowNFT} />} />
-        <Route path="/return" element={<Return returnNFT={returnNFT} />} />
+        <Route
+          path="/return"
+          element={<Return returnNFT={returnNFT} address={defaultAccount} />}
+        />
       </Routes>
     </>
   );
