@@ -14,7 +14,7 @@ import GiveScore from "./pages/GiveScore";
 import Borrow from "./pages/BorrowNFT";
 import Return from "./pages/ReturnNFT";
 import escrow from "./contract.json";
-import { ethers } from 'ethers';
+import { ethers } from "ethers";
 
 function App() {
   const [defaultAccount, setDefaultAccount] = useState(null);
@@ -23,11 +23,14 @@ function App() {
 
   const connect = async () => {
     if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
+      const provider = new ethers.providers.Web3Provider(
+        window.ethereum,
+        "any"
+      );
 
       await provider.send("eth_requestAccounts", []);
 
-      const signer = provider.getSigner()
+      const signer = provider.getSigner();
       signer.getAddress().then(setDefaultAccount);
       const c = new ethers.Contract(contractAddress, escrow.abi, signer);
       setContract(c);
@@ -35,13 +38,17 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    connect();
+  }, []);
+
   const getContract = async () => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
-    const signer = provider.getSigner()
+    const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    const signer = provider.getSigner();
     signer.getAddress().then(setDefaultAccount);
     const c = new ethers.Contract(contractAddress, escrow.abi, signer);
     setContract(c);
-  }
+  };
 
   const changeConnectedAccount = async (newAddress) => {
     try {
@@ -72,7 +79,6 @@ function App() {
   const client = Client.forTestnet().setOperator(operatorId, operatorKey);
 
   useEffect(() => {
-    
     // get the user credit score from the mirror node
     const getScore = async () => {
       try {
@@ -94,10 +100,10 @@ function App() {
   // create a new car NFT
   const createNFT = async (cid) => {
     try {
-      if(!contract) getContract();
-      console.log(tokenAddress, contract, cid)
+      if (!contract) getContract();
+      console.log(tokenAddress, contract, cid);
       const tx = await contract.mintNFT(tokenAddress, [Buffer.from(cid)], {
-        gasLimit: 1_000_000
+        gasLimit: 1_000_000,
       });
       await tx.wait();
 
@@ -111,11 +117,15 @@ function App() {
   // borrow a car NFT
   const borrowNFT = async (id) => {
     try {
-      console.log(contract, tokenAddress, AccountId.fromString(id).toSolidityAddress())
-      if(!contract) getContract();
+      console.log(
+        contract,
+        tokenAddress,
+        AccountId.fromString(id).toSolidityAddress()
+      );
+      if (!contract) getContract();
       const tx = await contract.borrowing(tokenAddress, 1, {
         value: ethers.utils.parseEther("1"),
-        gasLimit: 1_000_000
+        gasLimit: 1_000_000,
       });
       await tx.wait();
 
@@ -129,9 +139,9 @@ function App() {
   // return a car NFT
   const returnNFT = async (id) => {
     try {
-      if(!contract) getContract();
+      if (!contract) getContract();
       const tx = await contract.returning(tokenAddress, 1, {
-        gasLimit: 1_000_000
+        gasLimit: 1_000_000,
       });
       await tx.wait();
 
@@ -212,7 +222,10 @@ function App() {
         <Route path="/" element={<CreateNFT createNFT={createNFT} />} />
         <Route path="/score" element={<GiveScore giveScore={giveScore} />} />
         <Route path="/borrow" element={<Borrow borrowNFT={borrowNFT} />} />
-        <Route path="/return" element={<Return returnNFT={returnNFT} address={defaultAccount} />} />
+        <Route
+          path="/return"
+          element={<Return returnNFT={returnNFT} address={defaultAccount} />}
+        />
       </Routes>
     </>
   );
