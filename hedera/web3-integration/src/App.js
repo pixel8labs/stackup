@@ -6,6 +6,7 @@ import {
   Client,
   AccountBalanceQuery,
   TransferTransaction,
+  TopicMessageSubmitTransaction
 } from "@hashgraph/sdk";
 import { Buffer } from "buffer";
 import { Routes, Route, NavLink } from "react-router-dom";
@@ -64,13 +65,10 @@ function App() {
   const operatorKey = PrivateKey.fromString(
     process.env.REACT_APP_OPERATOR_PRIVATE_KEY
   );
-  const treasuryId = AccountId.fromString(process.env.REACT_APP_TREASURY_ID);
-  const treasuryKey = PrivateKey.fromString(
-    process.env.REACT_APP_TREASURY_PRIVATE_KEY
-  );
-
+  
   const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
   const tokenAddress = process.env.REACT_APP_TOKEN_ADDRESS;
+  const topicId = process.env.REACT_APP_TOPIC_ID;
 
   // create Hedera testnet client
   const client = Client.forTestnet().setOperator(operatorId, operatorKey);
@@ -125,6 +123,19 @@ function App() {
       );
       await tx.wait();
 
+      // Submit A Logs To The Topic
+      new TopicMessageSubmitTransaction()
+        .setTopicId(topicId)
+        .setMessage(
+          `{
+            type: Borrowing,
+            accountAddr: ${defaultAccount},
+            tokenId: ${id},
+            serial: ${serial}
+          }`
+        )
+        .execute(client);
+      
       alert("Successfully Borrowed Car!");
     } catch (e) {
       alert("Fail to Borrow Car");
@@ -145,6 +156,19 @@ function App() {
       );
       await tx.wait();
 
+      // Submit A Logs To The Topic
+      new TopicMessageSubmitTransaction()
+        .setTopicId(topicId)
+        .setMessage(
+          `{
+            type: Returning,
+            accountAddr: ${defaultAccount},
+            tokenId: ${id},
+            serial: ${serial}
+          }`
+        )
+        .execute(client);
+
       alert("Successfully Returned Car!");
     } catch (e) {
       alert("Fail to Return Car");
@@ -159,10 +183,10 @@ function App() {
 
       // Credit Scoring
       const creditScoring = await new TransferTransaction()
-        .addTokenTransfer(ftId.toString(), treasuryId, -1)
+        .addTokenTransfer(ftId.toString(), operatorId, -1)
         .addTokenTransfer(ftId.toString(), customer, 1)
         .freezeWith(client)
-        .sign(treasuryKey);
+        .sign(operatorKey);
 
       // submit the transaction
       const creditScoringTx = await creditScoring.execute(client);
@@ -180,6 +204,19 @@ function App() {
           ftId.toString()
         )} FTs of ID ${ftId} \n`
       );
+
+      // Submit A Logs To The Topic
+      new TopicMessageSubmitTransaction()
+      .setTopicId(topicId)
+      .setMessage(
+        `{
+          type: Scoring,
+          accountAddr: ${customer},
+          tokenId: ${ftId.toString()},
+          amount: ${1}
+        }`
+      )
+      .execute(client);
 
       alert("Successfully Give Score!");
     } catch (e) {
