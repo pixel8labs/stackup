@@ -1,24 +1,25 @@
-function CreateNFT({ createNFT }) {
+import { useState } from "react";
+
+function CreateCar({ createNewCar }) {
+  const [isLoading, setIsLoading] = useState(false);
   return (
     <div className="App">
-      <h1>Create Car NFT</h1>
+      <h1>Create New Car</h1>
       {/* Form for creating a new car NFT */}
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          createNFT(
-            document.getElementById("cid").value
-          );
+          setIsLoading(true);
+          await createNewCar(document.getElementById("cid").value);
+          setIsLoading(false);
         }}
         className="box"
       >
         <input type="text" id="cid" placeholder="Content ID (CID)" required />
-        {/* <input type="text" id="symbol" placeholder="Token Symbol" required /> */}
-        {/* <input type="number" id="supply" placeholder="Max Supply" required /> */}
         <div style={{ width: "100%" }}>
           {/* Submit button to create a new car NFT */}
-          <button type="submit" className="primary-btn">
-            Submit
+          <button type="submit" className="primary-btn" disabled={isLoading}>
+            {isLoading ? "Submitting..." : "Submit"}
           </button>
         </div>
       </form>
@@ -26,4 +27,4 @@ function CreateNFT({ createNFT }) {
   );
 }
 
-export default CreateNFT;
+export default CreateCar;

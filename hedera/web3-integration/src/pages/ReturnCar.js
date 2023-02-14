@@ -1,19 +1,34 @@
 import { useEffect, useState } from "react";
 import moment from "moment";
-import { AccountId } from "@hashgraph/sdk";
 
-function Borrow({ borrowNFT }) {
+function ReturnButton({ nft, returnCar, flag, setFlag }) {
+  const [isLoading, setIsLoading] = useState(false);
+  return (
+    <button
+      className="return-btn"
+      onClick={async () => {
+        setIsLoading(true);
+        await returnCar(nft.token_id, nft.serial_number);
+        setIsLoading(false);
+        setFlag(!flag);
+      }}
+      disabled={isLoading}
+    >
+      {isLoading ? "Returning..." : "Return"}
+    </button>
+  );
+}
+
+function Return({ returnCar, address }) {
   const [data, setData] = useState();
   const [flag, setFlag] = useState(false);
 
-  const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
-
   useEffect(() => {
-    // Fetching data from Hedera Mirror Node for car that can be borrowed
+    // Fetching data from Hedera Mirror Node for car that can be returned
     const readData = async () => {
       try {
         await fetch(
-          `https://testnet.mirrornode.hedera.com/api/v1/accounts/${contractAddress}/nfts?order=asc`
+          `https://testnet.mirrornode.hedera.com/api/v1/accounts/${address}/nfts?order=asc`
         )
           .then((response) => response.json())
           .then((data) => {
@@ -29,7 +44,7 @@ function Borrow({ borrowNFT }) {
 
   return (
     <div className="App">
-      <h1>Car Borrowing Page</h1>
+      <h1>Car Returning Page</h1>
 
       {data?.nfts?.map((nft, index) => (
         <div className="card" key={index}>
@@ -72,17 +87,14 @@ function Borrow({ borrowNFT }) {
                   </tr>
                 </tbody>
               </table>
-              {/* Button for borrowing the car */}
+              {/* Button for returning the car */}
               <div className="btn-container">
-                <button
-                  className="primary-btn"
-                  onClick={() => {
-                    borrowNFT(nft.token_id, nft.serial_number);
-                    setFlag(!flag);
-                  }}
-                >
-                  Borrow
-                </button>
+                <ReturnButton
+                  nft={nft}
+                  returnCar={returnCar}
+                  flag={flag}
+                  setFlag={setFlag}
+                />
               </div>
             </div>
           </div>
@@ -92,4 +104,4 @@ function Borrow({ borrowNFT }) {
   );
 }
 
-export default Borrow;
+export default Return;

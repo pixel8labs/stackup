@@ -1,22 +1,71 @@
 import { AccountId } from "@hashgraph/sdk";
 import { useEffect, useState } from "react";
 
+function ScoreForm({ index, account, giveScore, flag, setFlag }) {
+  const [isLoading, setIsLoading] = useState(false);
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        await giveScore(
+          account,
+          document.getElementById(`score${index}`).value
+        );
+        setIsLoading(false);
+        setFlag(!flag);
+      }}
+      className="box"
+    >
+      <div className="score-container">
+        <input
+          type="number"
+          id={`score${index}`}
+          placeholder="Score Amount"
+          min={1}
+          max={5}
+          required
+        />
+        <button
+          key={index}
+          className="primary-btn"
+          type="submit"
+          disabled={isLoading}
+        >
+          {isLoading ? "Loading..." : "Give Credit Score"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 function GiveScore({ giveScore }) {
   const [data, setData] = useState();
   const [flag, setFlag] = useState(false);
 
   useEffect(() => {
     // Fetching data from Hedera Mirror Node for list of past borrower
+    const escrowAddress = process.env.REACT_APP_ESCROW_ADDRESS;
+    const EvmAddress = escrowAddress.replace("0x", "");
     const readData = async () => {
       try {
         await fetch(
-          `https://testnet.mirrornode.hedera.com/api/v1/tokens/${AccountId.fromSolidityAddress(
-            process.env.REACT_APP_TOKEN_ADDRESS
-          ).toString()}/balances?order=desc`
+          `https://testnet.mirrornode.hedera.com/api/v1/accounts/${EvmAddress}`
         )
           .then((response) => response.json())
-          .then((data) => {
-            setData(data);
+          .then(async (data) => {
+            console.log(data.account);
+            await fetch(
+              `https://testnet.mirrornode.hedera.com/api/v1/tokens/${AccountId.fromSolidityAddress(
+                process.env.REACT_APP_NFT_ADDRESS
+              ).toString()}/balances?order=desc`
+            )
+              .then((response) => response.json())
+              .then((list) => {
+                setData(
+                  list?.balances?.filter((nft) => nft.account !== data.account)
+                );
+              });
           });
       } catch (e) {
         console.log(e);
@@ -31,7 +80,7 @@ function GiveScore({ giveScore }) {
       <h1>List of Borrower</h1>
       {/* Card for giving credit score to user account */}
 
-      {data?.balances?.map((nft, index) => (
+      {data?.map((nft, index) => (
         <div className="card" key={index}>
           <div className="item" style={{ width: "100%" }}>
             <table>
@@ -56,31 +105,13 @@ function GiveScore({ giveScore }) {
             </table>
             {/* Button for borrowing the car */}
             <div className="btn-container">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  giveScore(
-                    nft.account,
-                    document.getElementById("score").value
-                  );
-                  setFlag(!flag);
-                }}
-                className="box"
-              >
-                <div className="score-container">
-                  <input
-                    type="number"
-                    id="score"
-                    placeholder="Score Amount"
-                    min={1}
-                    max={5}
-                    required
-                  />
-                  <button className="primary-btn" type="submit">
-                    Give Credit Score
-                  </button>
-                </div>
-              </form>
+              <ScoreForm
+                index={index}
+                account={nft.account}
+                giveScore={giveScore}
+                flag={flag}
+                setFlag={setFlag}
+              />
             </div>
           </div>
         </div>

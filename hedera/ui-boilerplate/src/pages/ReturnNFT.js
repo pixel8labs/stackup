@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import moment from "moment";
 
-function Return({ returnNFT, address }) {
+function Return({ returnCar, address }) {
   const [data, setData] = useState();
+  const [isLoading, setIsLoading] = useState(false);
+  const [flag, setFlag] = useState(false);
 
   useEffect(() => {
     // Fetching data from Hedera Mirror Node for car that can be returned
@@ -21,7 +23,7 @@ function Return({ returnNFT, address }) {
     };
 
     readData();
-  }, [data]);
+  }, [flag]);
 
   return (
     <div className="App">
@@ -72,12 +74,15 @@ function Return({ returnNFT, address }) {
               <div className="btn-container">
                 <button
                   className="return-btn"
-                  onClick={() => {
-                    returnNFT(nft.token_id);
-                    setData(data);
+                  onClick={async () => {
+                    setIsLoading(true);
+                    await returnCar(nft.token_id, nft.serial_number);
+                    setIsLoading(false);
+                    setFlag(!flag);
                   }}
+                  disabled={isLoading}
                 >
-                  Return
+                  {isLoading ? "Returning..." : "Return"}
                 </button>
               </div>
             </div>

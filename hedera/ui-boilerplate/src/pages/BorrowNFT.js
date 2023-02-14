@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import moment from "moment";
 import { AccountId } from "@hashgraph/sdk";
 
-function Borrow({ borrowNFT }) {
+function Borrow({ borrowCar }) {
   const [data, setData] = useState();
+  const [isLoading, setIsLoading] = useState(false);
   const [flag, setFlag] = useState(false);
 
-  const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
+  const contractAddress = process.env.REACT_APP_ESCROW_ADDRESS;
 
   useEffect(() => {
     // Fetching data from Hedera Mirror Node for car that can be borrowed
@@ -76,12 +77,15 @@ function Borrow({ borrowNFT }) {
               <div className="btn-container">
                 <button
                   className="primary-btn"
-                  onClick={() => {
-                    borrowNFT(nft.token_id);
+                  onClick={async () => {
+                    setIsLoading(true);
+                    await borrowCar(nft.token_id, nft.serial_number);
+                    setIsLoading(false);
                     setFlag(!flag);
                   }}
+                  disabled={isLoading}
                 >
-                  Borrow
+                  {isLoading ? "Borrowing..." : "Borrow"}
                 </button>
               </div>
             </div>

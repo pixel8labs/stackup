@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function CreateNFT({ createNewCar }) {
+function CreateCar({ createCar }) {
   const [isLoading, setIsLoading] = useState(false);
   return (
     <div className="App">
@@ -10,7 +10,7 @@ function CreateNFT({ createNewCar }) {
         onSubmit={async (e) => {
           e.preventDefault();
           setIsLoading(true);
-          await createNewCar(document.getElementById("cid").value);
+          await createCar(document.getElementById("cid").value);
           setIsLoading(false);
         }}
         className="box"
@@ -27,4 +27,4 @@ function CreateNFT({ createNewCar }) {
   );
 }
 
-export default CreateNFT;
+export default CreateCar;

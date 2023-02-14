@@ -10,10 +10,10 @@ import {
 } from "@hashgraph/sdk";
 import { Buffer } from "buffer";
 import { Routes, Route, NavLink } from "react-router-dom";
-import CreateNFT from "./pages/CreateNFT";
+import CreateCar from "./pages/CreateCar";
 import GiveScore from "./pages/GiveScore";
-import Borrow from "./pages/BorrowNFT";
-import Return from "./pages/ReturnNFT";
+import Borrow from "./pages/BorrowCar";
+import Return from "./pages/ReturnCar";
 import escrow from "./contract.json";
 import { ethers } from "ethers";
 
@@ -86,7 +86,7 @@ function App() {
   );
   const merchantAddress = process.env.REACT_APP_MERCHANT_ADDRESS;
 
-  const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
+  const contractAddress = process.env.REACT_APP_ESCROW_ADDRESS;
   const nftAddress = process.env.REACT_APP_NFT_ADDRESS;
   const nftId = AccountId.fromSolidityAddress(nftAddress).toString();
   const ftAddress = process.env.REACT_APP_FT_ADDRESS;
@@ -96,8 +96,10 @@ function App() {
   // create Hedera testnet client
   const client = Client.forTestnet().setOperator(merchantId, merchantKey);
 
+  const isMerchant = defaultAccount === merchantAddress;
+
   // create a new car NFT
-  const createNewCar = async (cid) => {
+  const createCar = async (cid) => {
     try {
       if (!contract) getContract();
       const tx = await contract.mintNFT(nftAddress, [Buffer.from(cid)], {
@@ -114,7 +116,7 @@ function App() {
   };
 
   // borrow a car NFT
-  const borrowNFT = async (id, serial) => {
+  const borrowCar = async (id, serial) => {
     try {
       if (!contract) getContract();
       const tx = await contract.borrowing(
@@ -122,7 +124,7 @@ function App() {
         serial,
         {
           value: ethers.utils.parseEther("1"),
-          gasLimit: 1_000_000,
+          gasLimit: 2_000_000,
         }
       );
       await tx.wait();
@@ -148,7 +150,7 @@ function App() {
   };
 
   // return a car NFT
-  const returnNFT = async (id, serial) => {
+  const returnCar = async (id, serial) => {
     try {
       if (!contract) getContract();
       const tx = await contract.returning(
@@ -183,42 +185,29 @@ function App() {
   // give a credit/reputation score to a customer
   const giveScore = async (customer, score) => {
     try {
-      const ftId = AccountId.fromString(process.env.REACT_APP_FT_ID);
-
-      // Credit Scoring
-      const creditScoring = await new TransferTransaction()
-        .addTokenTransfer(ftId.toString(), merchantId, -1)
-        .addTokenTransfer(ftId.toString(), customer, 1)
-        .freezeWith(client)
-        .sign(merchantKey);
-
-      // submit the transaction
-      const creditScoringTx = await creditScoring.execute(client);
-      const creditScoringReceipt = await creditScoringTx.getReceipt(client);
-
-      console.log(`Credit Scoring Status: ${creditScoringReceipt.status} \n`);
-
-      // Balance FT Check
-      const customerBalance = await new AccountBalanceQuery()
-        .setAccountId(customer)
-        .execute(client);
-
-      console.log(
-        `- Customer's FT: ${customerBalance.tokens._map.get(
-          ftId.toString()
-        )} FTs of ID ${ftId} \n`
-      );
+      if (!contract) getContract();
+      await fetch(
+        `https://testnet.mirrornode.hedera.com/api/v1/accounts/${customer}`
+      )
+        .then((response) => response.json())
+        .then(async (data) => {
+          console.log(data.evm_address);
+          const tx = await contract.scoring(data.evm_address, score, {
+            gasLimit: 1_000_000,
+          });
+          await tx.wait();
+        });
 
       // Submit A Logs To The Topic
       new TopicMessageSubmitTransaction()
         .setTopicId(topicId)
         .setMessage(
           `{
-          type: Scoring,
-          accountAddr: ${customer},
-          tokenId: ${ftId.toString()},
-          amount: ${1}
-        }`
+            type: Scoring,
+            accountAddr: ${customer},
+            tokenId: ${ftId.toString()},
+            amount: ${1}
+          }`
         )
         .execute(client);
 
@@ -233,31 +222,36 @@ function App() {
     <>
       <nav>
         <ul className="nav">
-          {defaultAccount === merchantAddress ? (
+          {isMerchant ? (
             <>
               <NavLink to="/" className="nav-item">
                 Add Car
               </NavLink>
-              <NavLink to="/score" className="nav-item">
+              <NavLink to="/give" className="nav-item">
                 Give Score
               </NavLink>
             </>
-          ) : (
+          ) : defaultAccount ? (
             <>
-              <NavLink to="/borrow" className="nav-item">
+              <NavLink to="/" className="nav-item">
                 Borrow Car
               </NavLink>
-              <NavLink to="/return" className="nav-item">
+              <NavLink to="/give" className="nav-item">
                 Return Car
               </NavLink>
             </>
+          ) : (
+            <></>
           )}
           <div className="acc-container">
             <p className="acc-score">
               My Credit Score: {defaultAccount ? score : "0"}
             </p>
             <div className="connect-btn">
-              <button onClick={connect} className="primary-btn">
+              <button
+                onClick={defaultAccount ? changeConnectedAccount : connect}
+                className="primary-btn"
+              >
                 {defaultAccount
                   ? `${defaultAccount?.slice(0, 5)}...${defaultAccount?.slice(
                       defaultAccount?.length - 4,
@@ -269,28 +263,31 @@ function App() {
           </div>
         </ul>
       </nav>
+
+      {!defaultAccount ? (
+        <h1 className="center">Connect Your Wallet First</h1>
+      ) : (
+        <></>
+      )}
+
       <Routes>
-        {defaultAccount === merchantAddress ? (
+        {isMerchant ? (
           <>
-            <Route
-              path="/"
-              element={<CreateNFT createNewCar={createNewCar} />}
-            />
-            <Route
-              path="/score"
-              element={<GiveScore giveScore={giveScore} />}
-            />
+            <Route path="/" element={<CreateCar createCar={createCar} />} />
+            <Route path="/give" element={<GiveScore giveScore={giveScore} />} />
           </>
-        ) : (
+        ) : defaultAccount ? (
           <>
-            <Route path="/borrow" element={<Borrow borrowNFT={borrowNFT} />} />
+            <Route path="/" element={<Borrow borrowCar={borrowCar} />} />
             <Route
-              path="/return"
+              path="/give"
               element={
-                <Return returnNFT={returnNFT} address={defaultAccount} />
+                <Return returnCar={returnCar} address={defaultAccount} />
               }
             />
           </>
+        ) : (
+          <></>
         )}
       </Routes>
     </>
