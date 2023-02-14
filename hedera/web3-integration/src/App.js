@@ -4,8 +4,6 @@ import {
   AccountId,
   PrivateKey,
   Client,
-  AccountBalanceQuery,
-  TransferTransaction,
   TopicMessageSubmitTransaction,
 } from "@hashgraph/sdk";
 import { Buffer } from "buffer";
@@ -32,8 +30,9 @@ function App() {
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
       signer.getAddress().then(setDefaultAccount);
-      const c = new ethers.Contract(contractAddress, escrow.abi, signer);
+      const c = new ethers.Contract(escrowAddress, escrow.abi, signer);
       setContract(c);
+      getScore();
       window.ethereum.on("accountsChanged", changeConnectedAccount);
     }
   };
@@ -59,14 +58,13 @@ function App() {
 
   useEffect(() => {
     connect();
-    getScore();
   }, [defaultAccount]);
 
   const getContract = async () => {
     const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
     const signer = provider.getSigner();
     signer.getAddress().then(setDefaultAccount);
-    const c = new ethers.Contract(contractAddress, escrow.abi, signer);
+    const c = new ethers.Contract(escrowAddress, escrow.abi, signer);
     setContract(c);
   };
 
@@ -86,9 +84,8 @@ function App() {
   );
   const merchantAddress = process.env.REACT_APP_MERCHANT_ADDRESS;
 
-  const contractAddress = process.env.REACT_APP_ESCROW_ADDRESS;
+  const escrowAddress = process.env.REACT_APP_ESCROW_ADDRESS;
   const nftAddress = process.env.REACT_APP_NFT_ADDRESS;
-  const nftId = AccountId.fromSolidityAddress(nftAddress).toString();
   const ftAddress = process.env.REACT_APP_FT_ADDRESS;
   const ftId = AccountId.fromSolidityAddress(ftAddress).toString();
   const topicId = process.env.REACT_APP_TOPIC_ID;

@@ -40,7 +40,7 @@ function Return({ returnCar, address }) {
     };
 
     readData();
-  }, [flag]);
+  }, [address, flag]);
 
   return (
     <div className="App">

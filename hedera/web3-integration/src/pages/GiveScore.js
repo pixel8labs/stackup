@@ -1,5 +1,5 @@
-import { AccountId } from "@hashgraph/sdk";
 import { useEffect, useState } from "react";
+import { AccountId } from "@hashgraph/sdk";
 
 function ScoreForm({ index, account, giveScore, flag, setFlag }) {
   const [isLoading, setIsLoading] = useState(false);

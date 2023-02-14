@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import moment from "moment";
-import { AccountId } from "@hashgraph/sdk";
 
 function BorrowButton({ nft, borrowCar, flag, setFlag }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +43,7 @@ function Borrow({ borrowCar }) {
     };
 
     readData();
-  }, [flag]);
+  }, [contractAddress, flag]);
 
   return (
     <div className="App">
