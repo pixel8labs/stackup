@@ -3,6 +3,7 @@ import moment from "moment";
 
 function Return({ returnNFT, address }) {
   const [data, setData] = useState();
+  const [flag, setFlag] = useState(false);
 
   useEffect(() => {
     // Fetching data from Hedera Mirror Node for car that can be returned
@@ -21,7 +22,7 @@ function Return({ returnNFT, address }) {
     };
 
     readData();
-  }, [data]);
+  }, [flag]);
 
   return (
     <div className="App">
@@ -74,7 +75,7 @@ function Return({ returnNFT, address }) {
                   className="return-btn"
                   onClick={() => {
                     returnNFT(nft.token_id);
-                    setData(data);
+                    setFlag(!flag);
                   }}
                 >
                   Return

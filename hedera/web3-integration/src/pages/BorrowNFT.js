@@ -77,7 +77,7 @@ function Borrow({ borrowNFT }) {
                 <button
                   className="primary-btn"
                   onClick={() => {
-                    borrowNFT(nft.token_id);
+                    borrowNFT(nft.token_id, nft.serial_number);
                     setFlag(!flag);
                   }}
                 >

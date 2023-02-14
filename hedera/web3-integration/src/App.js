@@ -112,18 +112,18 @@ function App() {
   };
 
   // borrow a car NFT
-  const borrowNFT = async (id) => {
+  const borrowNFT = async (id, serial) => {
     try {
-      console.log(
-        contract,
-        tokenAddress,
-        AccountId.fromString(id).toSolidityAddress()
-      );
+      console.log(serial);
       if (!contract) getContract();
-      const tx = await contract.borrowing(tokenAddress, 1, {
-        value: ethers.utils.parseEther("1"),
-        gasLimit: 1_000_000,
-      });
+      const tx = await contract.borrowing(
+        AccountId.fromString(id).toSolidityAddress(),
+        serial,
+        {
+          value: ethers.utils.parseEther("1"),
+          gasLimit: 1_000_000,
+        }
+      );
       await tx.wait();
 
       alert("Successfully Borrowed Car!");
