@@ -255,7 +255,7 @@ function App() {
           <div className="acc-container">
             {!isMerchant && defaultAccount && (
               <p className="acc-score">
-                My Reputation Score: {defaultAccount ? score : "0"}
+                My Credit Score: {defaultAccount ? score : "0"}
               </p>
             )}
             <div className="connect-btn">
