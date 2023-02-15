@@ -149,10 +149,7 @@ function App() {
               </p>
             )}
             <div className="connect-btn">
-              <button
-                onClick={defaultAccount ? changeConnectedAccount : connect}
-                className="primary-btn"
-              >
+              <button onClick={connect} className="primary-btn">
                 {defaultAccount
                   ? `${defaultAccount?.slice(0, 5)}...${defaultAccount?.slice(
                       defaultAccount?.length - 4,

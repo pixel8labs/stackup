@@ -9,9 +9,14 @@ function CreateCar({ createCar }) {
       <form
         onSubmit={async (e) => {
           e.preventDefault();
-          setIsLoading(true);
-          await createCar(document.getElementById("cid").value);
-          setIsLoading(false);
+          try {
+            setIsLoading(true);
+            await createCar(document.getElementById("cid").value);
+            setIsLoading(false);
+          } catch (e) {
+            setIsLoading(false);
+            console.log(e);
+          }
         }}
         className="box"
       >
