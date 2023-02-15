@@ -7,10 +7,15 @@ function ReturnButton({ nft, returnCar, flag, setFlag }) {
     <button
       className="return-btn"
       onClick={async () => {
-        setIsLoading(true);
-        await returnCar(nft.token_id, nft.serial_number);
-        setIsLoading(false);
-        setFlag(!flag);
+        try {
+          setIsLoading(true);
+          await returnCar(nft.token_id, nft.serial_number);
+          setIsLoading(false);
+          setFlag(!flag);
+        } catch (e) {
+          setIsLoading(false);
+          console.log(e);
+        }
       }}
       disabled={isLoading}
     >

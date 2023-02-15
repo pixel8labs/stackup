@@ -7,13 +7,18 @@ function ScoreForm({ index, account, giveScore, flag, setFlag }) {
     <form
       onSubmit={async (e) => {
         e.preventDefault();
-        setIsLoading(true);
-        await giveScore(
-          account,
-          document.getElementById(`score${index}`).value
-        );
-        setIsLoading(false);
-        setFlag(!flag);
+        try {
+          setIsLoading(true);
+          await giveScore(
+            account,
+            document.getElementById(`score${index}`).value
+          );
+          setIsLoading(false);
+          setFlag(!flag);
+        } catch (e) {
+          setIsLoading(false);
+          console.log(e);
+        }
       }}
       className="box"
     >

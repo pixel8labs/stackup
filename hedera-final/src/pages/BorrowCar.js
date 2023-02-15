@@ -7,10 +7,15 @@ function BorrowButton({ nft, borrowCar, flag, setFlag }) {
     <button
       className="primary-btn"
       onClick={async () => {
-        setIsLoading(true);
-        await borrowCar(nft.token_id, nft.serial_number);
-        setIsLoading(false);
-        setFlag(!flag);
+        try {
+          setIsLoading(true);
+          await borrowCar(nft.token_id, nft.serial_number);
+          setIsLoading(false);
+          setFlag(!flag);
+        } catch (e) {
+          setIsLoading(false);
+          console.log(e);
+        }
       }}
       disabled={isLoading}
     >

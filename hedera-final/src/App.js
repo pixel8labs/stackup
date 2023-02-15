@@ -47,7 +47,9 @@ function App() {
 
   const getScore = async () => {
     try {
-      // PART 5 - GET USER REPUTATION SCORE FROM MIRROR NODE
+      if (defaultAccount) {
+        // PART 5 - GET USER REPUTATION SCORE FROM MIRROR NODE
+      }
     } catch (e) {
       console.log(e);
     }
@@ -63,6 +65,8 @@ function App() {
       if (!contract) getContract();
       // PART 6 - CREATE NEW CAR TO BE BORROWED FUNCTION
 
+      // PART 7 - SUBMIT CREATE NEW CAR LOGS TO THE TOPIC
+
       alert(`Successfully created car NFT!`);
     } catch (e) {
       alert("Failed to create NFT");
@@ -73,9 +77,9 @@ function App() {
   const borrowCar = async (id, serial) => {
     try {
       if (!contract) getContract();
-      // PART 7 - BORROW CAR FUNCTION
+      // PART 8 - BORROW CAR FUNCTION
 
-      // PART 8 - SUBMIT BORROW LOGS TO THE TOPIC
+      // PART 9 - SUBMIT BORROW LOGS TO THE TOPIC
 
       alert("Successfully Borrowed Car!");
     } catch (e) {
@@ -87,9 +91,9 @@ function App() {
   const returnCar = async (id, serial) => {
     try {
       if (!contract) getContract();
-      // PART 9 - RETURN CAR FUNCTION
+      // PART 10 - RETURN CAR FUNCTION
 
-      // PART 10 - SUBMIT RETURN LOGS TO THE TOPIC
+      // PART 11 - SUBMIT RETURN LOGS TO THE TOPIC
 
       alert("Successfully Returned Car!");
     } catch (e) {
@@ -98,13 +102,12 @@ function App() {
     }
   };
 
-  // give a reputation score to a customer
   const giveScore = async (customer, score) => {
     try {
       if (!contract) getContract();
-      // PART 11 - GIVE REPUTATION SCORE FUNCTION
+      // PART 12 - GIVE REPUTATION SCORE FUNCTION
 
-      // PART 12 - SUBMIT GIVE REPUTATION SCORE LOGS TO THE TOPIC
+      // PART 13 - SUBMIT GIVE REPUTATION SCORE LOGS TO THE TOPIC
 
       alert("Successfully Give Score!");
     } catch (e) {
@@ -140,9 +143,11 @@ function App() {
             <></>
           )}
           <div className="acc-container">
-            <p className="acc-score">
-              My Reputation Score: {defaultAccount ? score : "0"}
-            </p>
+            {!isMerchant && defaultAccount && (
+              <p className="acc-score">
+                My Reputation Score: {defaultAccount ? score : "0"}
+              </p>
+            )}
             <div className="connect-btn">
               <button
                 onClick={defaultAccount ? changeConnectedAccount : connect}

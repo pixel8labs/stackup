@@ -22,6 +22,7 @@ function App() {
 
   const escrowAddress = process.env.REACT_APP_ESCROW_ADDRESS;
   const nftAddress = process.env.REACT_APP_NFT_ADDRESS;
+  const nftId = AccountId.fromSolidityAddress(nftAddress).toString();
   const ftAddress = process.env.REACT_APP_FT_ADDRESS;
   const ftId = AccountId.fromSolidityAddress(ftAddress).toString();
   const topicId = process.env.REACT_APP_TOPIC_ID;
@@ -72,18 +73,19 @@ function App() {
   // get the user credit score from the mirror node
   const getScore = async () => {
     try {
-      await fetch(
-        `https://testnet.mirrornode.hedera.com/api/v1/accounts/${defaultAccount}/tokens?token.id=${ftId}`
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          console.log(data);
-          if (!data.tokens[0]) {
-            setScore(0);
-            return;
-          }
-          setScore(data.tokens[0].balance);
-        });
+      if (defaultAccount) {
+        await fetch(
+          `https://testnet.mirrornode.hedera.com/api/v1/accounts/${defaultAccount}/tokens?token.id=${ftId}`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (!data.tokens[0]) {
+              setScore(0);
+              return;
+            }
+            setScore(data.tokens[0].balance);
+          });
+      }
     } catch (e) {
       console.log(e);
     }
@@ -102,6 +104,18 @@ function App() {
         gasLimit: 1_000_000,
       });
       await tx.wait();
+
+      // Submit A Logs To The Topic
+      new TopicMessageSubmitTransaction()
+        .setTopicId(topicId)
+        .setMessage(
+          `{
+            type: Minting,
+            accountAddr: ${defaultAccount},
+            tokenId: ${nftId}
+          }`
+        )
+        .execute(client);
 
       alert(`Successfully created car NFT!`);
     } catch (e) {
@@ -129,11 +143,11 @@ function App() {
         .setTopicId(topicId)
         .setMessage(
           `{
-      type: Borrowing,
-      accountAddr: ${defaultAccount},
-      tokenId: ${id},
-      serial: ${serial}
-    }`
+            type: Borrowing,
+            accountAddr: ${defaultAccount},
+            tokenId: ${id},
+            serial: ${serial}
+          }`
         )
         .execute(client);
 
@@ -162,11 +176,11 @@ function App() {
         .setTopicId(topicId)
         .setMessage(
           `{
-      type: Returning,
-      accountAddr: ${defaultAccount},
-      tokenId: ${id},
-      serial: ${serial}
-    }`
+            type: Returning,
+            accountAddr: ${defaultAccount},
+            tokenId: ${id},
+            serial: ${serial}
+          }`
         )
         .execute(client);
 
@@ -186,7 +200,6 @@ function App() {
       )
         .then((response) => response.json())
         .then(async (data) => {
-          console.log(data.evm_address);
           const tx = await contract.scoring(data.evm_address, score, {
             gasLimit: 1_000_000,
           });
@@ -198,11 +211,11 @@ function App() {
         .setTopicId(topicId)
         .setMessage(
           `{
-      type: Scoring,
-      accountAddr: ${customer},
-      tokenId: ${ftId.toString()},
-      amount: ${1}
-    }`
+            type: Scoring,
+            accountAddr: ${customer},
+            tokenId: ${ftId.toString()},
+            amount: ${1}
+          }`
         )
         .execute(client);
 
@@ -240,9 +253,11 @@ function App() {
             <></>
           )}
           <div className="acc-container">
-            <p className="acc-score">
-              My Credit Score: {defaultAccount ? score : "0"}
-            </p>
+            {!isMerchant && defaultAccount && (
+              <p className="acc-score">
+                My Reputation Score: {defaultAccount ? score : "0"}
+              </p>
+            )}
             <div className="connect-btn">
               <button
                 onClick={defaultAccount ? changeConnectedAccount : connect}
